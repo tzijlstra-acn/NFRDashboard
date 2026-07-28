@@ -1128,25 +1128,25 @@ renderMain();
       depends:"Navigation state machine",
       writes:"— (client-side only)"}},
     {name:"Assessment Launcher (topbar)",find:()=>qs('#newIcsBtn'),r:{
-      source:"Assessment Orchestration Service",
+      source:"Assessment Orchestration Service (prototype routes to ICS Agent chat)",
       query:"POST /assessments { cycle: :cycle, scope: 'all-in-scope' }",
       refresh:"On demand (user action)",
       output:"New RCSA run seeded across in-scope processes",
-      depends:"ICS Agent (LLM) orchestration · RISK_REGISTER snapshot",
-      writes:"RCSA_DRAFTS · ASSESSMENT_RUNS · agent task queue"}},
+      depends:"ICS Agent (LLM) orchestration · Assessment Workflow Engine · RISK_REGISTER snapshot",
+      writes:"ASSESSMENT_RUNS · RCSA_DRAFTS · notification service · agent task queue"}},
     {name:"ICS Agent (LLM)",inset:true,find:()=>qs('.agent-header'),r:{
-      source:"RAG over GRC knowledge base + live context injection",
-      query:"retrieve(top_k) ⊕ context(view, process_id) → LLM prompt",
+      source:"Prototype: canned getReply() map · Prod: RAG over GRC knowledge base + live context injection",
+      query:"retrieve(top_k policies, prior RCSAs) ⊕ context(view, process_id, filters) → LLM prompt",
       refresh:"Streaming, per conversation turn",
-      output:"Narrative answers, suggested risks/controls, draft reports",
+      output:"Narrative answers, suggested risks/controls, draft gap reports",
       depends:"Vector store (policies, prior RCSAs) · GRC Core live reads",
-      writes:"Chat transcript · proposed risks to RISK_REGISTER on confirm"}},
+      writes:"Chat transcript · proposed risks to RISK_REGISTER on human confirm"}},
     {name:"Portfolio KPIs",find:()=>qs('#main-area .metrics-grid'),r:{
-      source:"GRC Core API · RCSA_PROCESSES ⊕ RISK_REGISTER ⊕ CONTROLS",
-      query:"SELECT COUNT(*), agg(residual), agg(control_gaps) FROM risk_register r JOIN rcsa_processes p ON r.process_id=p.id WHERE cycle=:cycle",
+      source:"GRC Core API · RISK_REGISTER ⊕ CONTROL_TEST_RESULTS ⊕ ASSESSMENT_SCHEDULE ⊕ RCSA_TASKS",
+      query:"5 scoped aggregates — COUNT(risk) · COUNT(risk WHERE residual IN ('High','Critical')) · COUNT(control WHERE effectiveness IN ('Ineffective','Partially effective')) · COUNT(rcsa WHERE next_due < :today) · COUNT(task WHERE line='1LoD' AND status='pending')",
       refresh:"On navigation / 15-min polling",
-      output:"Open risks, high/critical count, control gaps, overdue RCSAs, 1LoD pending",
-      depends:"Control-effectiveness scoring (C-engine) · ASSESSMENT_SCHEDULE",
+      output:"Open risks · high-critical · control gaps · overdue RCSAs · 1LoD pending",
+      depends:"Rule engine (residual scoring, gap logic, overdue logic)",
       writes:"— (read-only aggregation)"}},
     {name:"Area Overview Cards",find:()=>qs('#main-area .areas-grid'),r:{
       source:"GRC Core API · RCSA_PROCESSES grouped by org_unit",
@@ -1157,24 +1157,24 @@ renderMain();
       writes:"— (drill-down navigation only)"}},
     {name:"Risk Heatmap",find:()=>{const g=qs('#main-area .heatmap-grid');return g?g.closest('.card'):null;},r:{
       source:"GRC Core API · RISK_REGISTER (L×I matrix)",
-      query:"SELECT risk_id, risk_l, risk_i, inherent_l, inherent_i FROM risk_register WHERE process_id IN (:scope) AND cycle=:cycle",
+      query:"SELECT risk_id, inherent_l, inherent_i, residual_l, residual_i, is_new FROM risk_register WHERE process_id IN (:scope) AND cycle=:cycle",
       refresh:"On navigation / heatmap mode toggle",
-      output:"Likelihood × Impact placement, new-risk flags",
-      depends:"Rule-based risk-scoring engine",
+      output:"Likelihood × Impact placement, new-risk outline",
+      depends:"Rule-based scoring engine (L×I → rating) · new-risk flag (agent/TPRM or 1LoD)",
       writes:"— (read-only)"}},
     {name:"Heatmap Mode Toggle",find:()=>qs('#main-area .heat-mode-toggle'),r:{
       source:"Client-side view parameter → re-projects RISK_REGISTER",
-      query:"switch projection: (inherent_l, inherent_i) ↔ (risk_l, risk_i)",
+      query:"switch projection: (inherent_l, inherent_i) ↔ (residual_l, residual_i)",
       refresh:"On toggle",
       output:"Re-renders heatmap using inherent or residual coordinates",
-      depends:"RISK_REGISTER risk_L / risk_I / inherent_L / inherent_I fields",
+      depends:"RISK_REGISTER inherent_L/I · residual_L/I fields (no backend call)",
       writes:"— (read-only)"}},
     {name:"Control Effectiveness Donut",find:()=>{const d=qs('#main-area .donut-wrap');return d?d.closest('.card'):null;},r:{
-      source:"GRC Core API · CONTROLS",
-      query:"SELECT effectiveness, COUNT(*) FROM controls WHERE process_id IN (:scope) GROUP BY effectiveness",
+      source:"GRC Core API · CONTROL_LIBRARY ⊕ CONTROL_TEST_RESULTS",
+      query:"SELECT effectiveness, COUNT(*) FROM control_test_results WHERE process_id IN (:scope) AND cycle=:cycle GROUP BY effectiveness — buckets: Effective / Partially effective / Ineffective / Not assessed",
       refresh:"On navigation / after control-test sign-off",
-      output:"Effective / partial / ineffective / not-assessed distribution",
-      depends:"Control testing workflow (last_test outcomes)",
+      output:"Effectiveness distribution + % effective (centre)",
+      depends:"Control testing workflow · effectiveness thresholds (rule engine)",
       writes:"— (read-only)"}},
     {name:"RCSA Timeline",find:()=>{const t=qs('#main-area .timeline-bar-track');return t?t.closest('.card'):null;},r:{
       source:"GRC Core API · ASSESSMENT_SCHEDULE",
@@ -1185,18 +1185,18 @@ renderMain();
       writes:"— (read-only)"}},
     {name:"Risk Register Table",inset:true,find:()=>{const t=qs('#main-area .risk-table');return t?t.closest('.card'):null;},r:{
       source:"GRC Core API · RISK_REGISTER",
-      query:"SELECT * FROM risk_register WHERE process_id=:pid AND cycle=:cycle ORDER BY residual_rating DESC",
+      query:"SELECT risk_id, title, category, inherent_rating, residual_rating, trend, owner FROM risk_register WHERE process_id IN (:scope) AND cycle=:cycle ORDER BY residual_rating DESC",
       refresh:"On navigation / 15-min polling",
       output:"Inherent & residual rating, trend direction, owner",
-      depends:"Control-effectiveness score (C-engine) · trend analytics",
-      writes:"RCSA draft if “Start Assessment” triggered"}},
+      depends:"Rule engine (residual scoring) · trend analytics (statistical direction; ML-forecast optional)",
+      writes:"— (read-only; row click drills to process)"}},
     {name:"Assessment Launcher",find:()=>{return qsa('#main-area button').filter(b=>/Start ICS Assessment/i.test(b.textContent))[0]||null;},r:{
-      source:"Assessment Orchestration Service",
+      source:"Assessment Orchestration Service (prototype routes to ICS Agent chat)",
       query:"POST /assessments { process_id: :pid, cycle: :cycle }",
       refresh:"On demand (user action)",
       output:"New RCSA draft, agent task queue seeded",
-      depends:"ICS Agent (LLM) orchestration · RISK_REGISTER snapshot",
-      writes:"RCSA_DRAFTS · ASSESSMENT_RUNS · agent task queue"}}
+      depends:"ICS Agent (LLM) orchestration · Assessment Workflow Engine · RISK_REGISTER snapshot",
+      writes:"ASSESSMENT_RUNS · RCSA_DRAFTS · notification service · agent task queue"}}
   ];
 
   /* ---- persistent DOM: rail, backdrop, legend, modal ---- */
@@ -1236,9 +1236,9 @@ renderMain();
       '<button class="ai-modal-close" id="aiModalClose" type="button" aria-label="Close">✕</button>'+
       '<h4 id="aiModalTitle">The AI Layer, explained</h4>'+
       '<p class="sub">Every element on the cockpit is served by one of four mechanisms. Toggle the AI Layer to see which is which.</p>'+
-      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#A100FF;">✦</span><div class="ai-cat-b"><div class="ai-cat-t">AI-Powered</div><div class="ai-cat-d">Outputs generated by the ICS Agent (LLM) — RAG over the GRC knowledge base plus live context. Covers assessment orchestration, narrative insight and suggested risks/controls.</div></div></div>'+
-      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#08B9B2;">⟳</span><div class="ai-cat-b"><div class="ai-cat-t">Data Pipeline</div><div class="ai-cat-d">Deterministic reads and aggregations from the GRC Core API (RCSA_PROCESSES, RISK_REGISTER, CONTROLS). Refreshed on navigation and 15-minute polling.</div></div></div>'+
-      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#F59E0B;">⚙</span><div class="ai-cat-b"><div class="ai-cat-t">Rule-Based</div><div class="ai-cat-d">Scores and statuses from the rule engine — inherent/residual rating (L×I), control effectiveness and RCSA due-date logic. No model inference.</div></div></div>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#A100FF;">✦</span><div class="ai-cat-b"><div class="ai-cat-t">AI-Powered</div><div class="ai-cat-d">Outputs generated by the ICS Agent (LLM) — RAG over the GRC knowledge base plus live context. Covers assessment orchestration, narrative insight and suggested risks/controls (e.g. the agent/TPRM-flagged new risk). A human-flagged new risk would instead route through Human Input.</div></div></div>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#08B9B2;">⟳</span><div class="ai-cat-b"><div class="ai-cat-t">Data Pipeline</div><div class="ai-cat-d">Deterministic reads and aggregations from the GRC Core API (RISK_REGISTER, CONTROL_TEST_RESULTS, ASSESSMENT_SCHEDULE) — metric cards, heatmap, donut, timeline and historical trend series. Refreshed on navigation and 15-minute polling.</div></div></div>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#F59E0B;">⚙</span><div class="ai-cat-b"><div class="ai-cat-t">Rule-Based</div><div class="ai-cat-d">Deterministic business rules — inherent/residual rating on the L×I matrix, control-effectiveness thresholds, control-gap counts (ineffective + partial) and RCSA due-date / overdue logic. Trend direction is derived statistically. No model inference.</div></div></div>'+
       '<div class="ai-cat"><span class="ai-cat-dot" style="background:#22C55E;">✎</span><div class="ai-cat-b"><div class="ai-cat-t">Human Input Required</div><div class="ai-cat-d">Items awaiting 1LoD action — process documentation, risk-owner confirmation and reminder workflows routed to accountable owners.</div></div></div>'+
     '</div>';
   document.body.appendChild(modalBack);
@@ -1304,11 +1304,9 @@ renderMain();
     // AI-powered
     mark(qs('.agent-header'),'ai-ai',true);
     qsa('#chatMsgs .msg').forEach(m=>mark(m,'ai-ai',true));
-    const trend=qs('#trendGrad');
-    if(trend){const c=trend.closest('.card');if(c)mark(c,'ai-ai',true);}
     mark(qs('#newIcsBtn'),'ai-ai',true);
     qsa('#main-area button').forEach(b=>{if(/Start ICS Assessment/i.test(b.textContent))mark(b,'ai-ai',true);});
-    qsa('#main-area .area-card span').forEach(s=>{if(/ctrl gap/i.test(s.textContent))mark(s,'ai-ai',true);});
+    // new-risk chips: in this scenario the agent/TPRM signal flagged R-104 → AI-Powered
     qsa('.heat-chip.new-risk').forEach(h=>mark(h,'ai-ai',true));
     // Data pipeline
     qsa('#main-area .metric').forEach(m=>mark(m,'ai-data',true));
@@ -1316,12 +1314,17 @@ renderMain();
     qsa('#main-area .timeline-row').forEach(t=>mark(t,'ai-data',true));
     const donut=qs('#main-area .donut-wrap');
     if(donut){const c=donut.closest('.card');if(c)mark(c,'ai-data',true);}
+    // trend chart plots stored historical inherent/residual series → deterministic pipeline
+    const trend=qs('#trendGrad');
+    if(trend){const c=trend.closest('.card');if(c)mark(c,'ai-data',true);}
     qsa('#main-area .risk-table tbody tr, #main-area .proc-table tbody tr').forEach(tr=>{
       tr.classList.add('ai-data');
       const td=tr.querySelector('td');if(td)td.classList.add('ai-cell');
     });
     // Rule-based
     qsa('.anno-rating,.anno-status,.anno-eff').forEach(e=>e.classList.add('ai-rule'));
+    // control-gap count = ineffective + partial → arithmetic, not AI
+    qsa('#main-area .area-card span').forEach(s=>{if(/ctrl gap/i.test(s.textContent))s.classList.add('ai-rule');});
     // Human input required
     qsa('#main-area .pending-item').forEach(p=>mark(p,'ai-human',true));
     qsa('#main-area .card-action').forEach(a=>{if(/reminder/i.test(a.textContent))mark(a,'ai-human',true);});
