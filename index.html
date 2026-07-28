@@ -292,6 +292,108 @@ body{font-family:var(--font);background:var(--canvas);color:var(--tp);font-size:
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important;}
 }
+
+/* ══════════════════════════════════════════════════════════
+   OVERLAY FEATURES — Technical View + AI Layer
+══════════════════════════════════════════════════════════ */
+
+/* ── Topbar toggle buttons ── */
+.topbar-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);background:rgba(255,255,255,.12);color:#fff;border:0.5px solid rgba(255,255,255,.25);transition:background .14s,border-color .14s,box-shadow .14s;white-space:nowrap;line-height:1;}
+.topbar-toggle:hover{background:rgba(255,255,255,.22);}
+.topbar-toggle .tg-glyph{font-size:14px;line-height:1;font-family:var(--mono);}
+.topbar-toggle[aria-pressed="true"]{background:#A100FF;border-color:#C77BFF;color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.28) inset,0 2px 12px rgba(161,0,255,.5);}
+.topbar-toggle:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+
+/* keep corner badges visible in chrome bars while an overlay is active */
+body.tech-view .topbar,body.ai-layer .topbar{overflow:visible;}
+
+/* ── TECHNICAL VIEW — badges ── */
+.tech-badge{position:absolute;top:-9px;right:-9px;width:16px;height:16px;border-radius:50%;background:#A100FF;color:#fff;font-family:var(--mono);font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;box-shadow:0 1px 5px rgba(22,0,41,.45);cursor:pointer;z-index:60;padding:0;line-height:1;transition:transform .12s;}
+.tech-badge:hover{transform:scale(1.18);}
+.tech-badge:focus-visible{outline:2px solid #fff;outline-offset:1px;}
+.tech-badge.tb-inset{top:6px;right:8px;}
+body.tech-view .tech-anno{position:relative;outline:1.5px dashed rgba(161,0,255,.4);outline-offset:3px;border-radius:8px;}
+
+/* ── TECHNICAL VIEW — rail ── */
+.tech-backdrop{position:fixed;inset:98px 0 0 0;background:rgba(15,23,42,.4);z-index:205;opacity:0;pointer-events:none;transition:opacity .24s;}
+.tech-backdrop.open{opacity:1;pointer-events:auto;}
+.tech-rail{position:fixed;top:98px;bottom:0;left:0;width:340px;max-width:88vw;background:#0F172A;color:#E2E8F0;z-index:210;display:flex;flex-direction:column;transform:translateX(-102%);transition:transform .28s cubic-bezier(.2,.7,.3,1);box-shadow:2px 0 28px rgba(0,0,0,.45);border-right:1px solid #1E293B;}
+.tech-rail.open{transform:none;}
+.tech-rail-hdr{padding:16px 18px 12px;border-bottom:1px solid #1E293B;flex-shrink:0;position:relative;}
+.tech-rail-hdr h3{font-family:'Space Grotesk',var(--font);font-size:14px;font-weight:600;color:#fff;display:flex;align-items:center;gap:9px;letter-spacing:-.01em;padding-right:30px;}
+.tech-rail-hdr h3 .tg-mark{width:22px;height:22px;border-radius:6px;background:#A100FF;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;font-family:var(--mono);}
+.tech-rail-close{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:6px;border:1px solid #1E293B;background:#111C31;color:#94A3B8;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;transition:background .12s,color .12s;padding:0;}
+.tech-rail-close:hover{background:#1E293B;color:#fff;}
+.tech-rail-close:focus-visible{outline:2px solid #A100FF;outline-offset:2px;}
+.tech-rail-legend{font-size:10.5px;color:#94A3B8;margin-top:9px;display:flex;align-items:center;gap:7px;line-height:1.4;}
+.tech-rail-legend .lg-badge{width:15px;height:15px;border-radius:50%;background:#A100FF;color:#fff;font-family:var(--mono);font-size:8px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tech-rail-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px;}
+.tech-entry{background:#1E293B;border:1px solid #27354B;border-radius:10px;padding:12px 13px;opacity:0;transform:translateX(-10px);animation:railIn .34s cubic-bezier(.2,.7,.3,1) forwards;}
+@keyframes railIn{to{opacity:1;transform:none;}}
+.tech-entry.flash{animation:railIn .34s cubic-bezier(.2,.7,.3,1) forwards,railFlash 1.1s ease;}
+@keyframes railFlash{0%,100%{box-shadow:0 0 0 0 rgba(161,0,255,0);border-color:#27354B;}25%,60%{box-shadow:0 0 0 2px rgba(161,0,255,.65);border-color:#A100FF;}}
+.tech-entry-hd{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.tech-entry-num{width:18px;height:18px;border-radius:50%;background:#A100FF;color:#fff;font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tech-entry-name{font-size:12.5px;font-weight:600;color:#F1F5F9;letter-spacing:-.01em;}
+.tech-row{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:5px 0;font-size:11px;align-items:start;border-top:1px solid rgba(255,255,255,.05);}
+.tech-row:first-of-type{border-top:none;}
+.tech-row-k{color:#7C8BA3;font-weight:500;display:flex;align-items:center;gap:5px;font-family:var(--font);}
+.tech-row-k::before{content:"\25B8";color:#A100FF;font-size:9px;line-height:1.4;}
+.tech-row-v{color:#CBD5E1;font-family:var(--mono);font-size:10.5px;line-height:1.55;word-break:break-word;}
+
+/* ── AI LAYER — legend bar ── */
+#aiLegend{display:none;}
+body.ai-layer #aiLegend{display:flex;align-items:center;gap:18px;height:36px;padding:0 24px;background:linear-gradient(90deg,#F7F2FD,#FBFAFE);border-bottom:1px solid var(--border);position:sticky;top:98px;z-index:180;font-size:11.5px;color:var(--ts);animation:aiFade .2s ease;overflow-x:auto;}
+body.ai-layer .app-body{height:calc(100vh - 98px - 36px);}
+.ai-leg-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.ai-leg-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;line-height:1;}
+.ai-leg-info{margin-left:auto;color:#A100FF;font-weight:600;cursor:pointer;text-decoration:none;font-size:11px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;background:none;border:none;font-family:var(--font);}
+.ai-leg-info:hover{text-decoration:underline;}
+.ai-leg-info i{font-size:13px;}
+@keyframes aiFade{from{opacity:0;}to{opacity:1;}}
+
+/* ── AI LAYER — classification ── */
+body.ai-layer .ai-ai,body.ai-layer .ai-data,body.ai-layer .ai-rule,body.ai-layer .ai-human{position:relative;border-radius:8px;animation:aiFade .2s ease;}
+body.ai-layer .metric,body.ai-layer .area-card{overflow:visible;}
+body.ai-layer .ai-badge-host::after{position:absolute;top:-7px;right:-7px;width:14px;height:14px;border-radius:50%;font-size:8.5px;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;z-index:40;line-height:1;pointer-events:none;font-family:var(--mono);}
+
+body.ai-layer .ai-ai{outline:1.5px solid rgba(161,0,255,.5);outline-offset:2px;box-shadow:0 0 0 4px rgba(161,0,255,.10),0 0 14px rgba(161,0,255,.18);}
+body.ai-layer .ai-ai.ai-badge-host::after{content:"\2726";background:#A100FF;color:#fff;}
+body.ai-layer .ai-data{outline:1.5px solid rgba(8,185,178,.55);outline-offset:2px;box-shadow:0 0 0 3px rgba(8,185,178,.12);}
+body.ai-layer .ai-data.ai-badge-host::after{content:"\27F3";background:#08B9B2;color:#fff;}
+body.ai-layer .ai-rule{outline:1.5px solid rgba(245,158,11,.6);outline-offset:2px;}
+body.ai-layer .ai-rule::after{content:"\2699";margin-left:5px;font-size:9px;opacity:.85;color:#B45309;font-family:var(--font);vertical-align:middle;}
+body.ai-layer .ai-human{outline:1.5px solid rgba(34,197,94,.6);outline-offset:2px;box-shadow:0 0 0 3px rgba(34,197,94,.10);}
+body.ai-layer .ai-human.ai-badge-host::after{content:"\270E";background:#22C55E;color:#fff;}
+
+/* inset badges for tight chrome containers */
+body.ai-layer .agent-header.ai-badge-host::after{top:8px;right:10px;}
+body.ai-layer .msg.ai-badge-host::after{top:4px;right:4px;}
+
+/* table rows — data pipeline treatment (no corner badge to avoid clipping) */
+body.ai-layer tr.ai-data{outline:none;box-shadow:none;}
+body.ai-layer tr.ai-data>td{background:rgba(8,185,178,.06)!important;}
+body.ai-layer tr.ai-data>td.ai-cell{box-shadow:inset 3px 0 0 rgba(8,185,178,.8);}
+
+/* ── AI LAYER — "What is this?" modal ── */
+.ai-modal-back{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+.ai-modal-back.open{display:flex;animation:aiFade .18s ease;}
+.ai-modal{background:#fff;border-radius:14px;max-width:440px;width:100%;padding:22px 22px 18px;box-shadow:0 20px 60px rgba(15,23,42,.4);position:relative;}
+.ai-modal h4{font-family:'Space Grotesk',var(--font);font-size:16px;font-weight:600;margin-bottom:3px;color:var(--tp);}
+.ai-modal p.sub{font-size:12px;color:var(--tm);margin-bottom:12px;}
+.ai-cat{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-top:0.5px solid var(--border);}
+.ai-cat-dot{width:24px;height:24px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;margin-top:1px;font-family:var(--mono);}
+.ai-cat-b{flex:1;}
+.ai-cat-t{font-size:12.5px;font-weight:600;color:var(--tp);margin-bottom:1px;}
+.ai-cat-d{font-size:11.5px;color:var(--ts);line-height:1.5;}
+.ai-modal-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:7px;border:0.5px solid var(--border);background:var(--s1);cursor:pointer;font-size:15px;color:var(--tm);display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
+.ai-modal-close:hover{background:var(--s2);}
+.ai-modal-close:focus-visible{outline:2px solid #A100FF;outline-offset:2px;}
+
+@media(max-width:960px){
+  .tech-rail{top:98px;}
+  body.ai-layer .agent-pane{display:none;}
+}
 </style>
 </head>
 <body>
@@ -328,7 +430,9 @@ body{font-family:var(--font);background:var(--canvas);color:var(--tp);font-size:
   </div>
   <div class="topbar-right">
     <span class="chip chip-blue" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25);"><i class="ti ti-sparkles"></i>Agent active</span>
-    <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25);" onclick="agentAction('Start a new ICS assessment for the current cycle')"><i class="ti ti-plus"></i>New ICS Assessment</button>
+    <button id="newIcsBtn" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.25);" onclick="agentAction('Start a new ICS assessment for the current cycle')"><i class="ti ti-plus"></i>New ICS Assessment</button>
+    <button id="techToggle" class="topbar-toggle" type="button" aria-pressed="false" title="Technical View — data-architecture annotations"><span class="tg-glyph">&#8983;</span>Technical View</button>
+    <button id="aiToggle" class="topbar-toggle" type="button" aria-pressed="false" title="AI Layer — highlight AI vs. data-pipeline elements"><span class="tg-glyph">&#10022;</span>AI Layer</button>
     <span class="topbar-divider" style="margin:0 2px;"></span>
     <div class="avatar">MK</div>
     <div class="user-block">
@@ -545,15 +649,15 @@ function openProcess(pid) {
    COMPONENTS
 ═══════════════════════════════════════════════════════ */
 function ratingBadge(r){
-  return `<span style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;color:${ratingColor(r)};background:${ratingBg(r)};border:0.5px solid ${ratingColor(r)}44;"><span style="width:6px;height:6px;border-radius:2px;background:${ratingColor(r)};"></span>${r}</span>`;
+  return `<span class="anno-rating" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;color:${ratingColor(r)};background:${ratingBg(r)};border:0.5px solid ${ratingColor(r)}44;"><span style="width:6px;height:6px;border-radius:2px;background:${ratingColor(r)};"></span>${r}</span>`;
 }
 function statusBadge(s){
   const c=statusColor(s),bg=statusBg(s);
-  return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;color:${c};background:${bg};border:0.5px solid ${c}44;font-family:var(--mono);">${s}</span>`;
+  return `<span class="anno-status" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;color:${c};background:${bg};border:0.5px solid ${c}44;font-family:var(--mono);">${s}</span>`;
 }
 function effBadge(e){
   const c=effColor(e);
-  return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:${c};font-weight:500;"><span style="width:8px;height:8px;border-radius:2px;background:${c};"></span>${e}</span>`;
+  return `<span class="anno-eff" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:${c};font-weight:500;"><span style="width:8px;height:8px;border-radius:2px;background:${c};"></span>${e}</span>`;
 }
 function trendIcon(t){
   if(t==="increasing")return `<span style="color:${C.r};font-size:11px;display:inline-flex;align-items:center;gap:3px;"><i class="ti ti-trending-up" style="font-size:12px;"></i>Increasing</span>`;
@@ -988,6 +1092,310 @@ function handleKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMs
 
 /* INIT */
 renderMain();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   OVERLAY LAYER — Technical View + AI Layer
+   (additive; wraps renderMain, never mutates core data flow)
+═══════════════════════════════════════════════════════ */
+(function(){
+  "use strict";
+  const qs=(s,r)=>(r||document).querySelector(s);
+  const qsa=(s,r)=>Array.prototype.slice.call((r||document).querySelectorAll(s));
+  const store=window.sessionStorage;
+
+  /* ---- state ---- */
+  const state={tech:false,ai:false};
+  try{state.tech=store.getItem('ics_tech')==='1';state.ai=store.getItem('ics_ai')==='1';}catch(e){}
+  if(state.tech&&state.ai)state.ai=false; // enforce exclusivity on restore
+  let railOpen=state.tech;
+
+  /* ---- technical annotation catalog (GRC system design) ---- */
+  const CAT=[
+    {name:"Area Navigation",inset:true,find:()=>qs('.nav-tabs'),r:{
+      source:"Client-side route state",
+      query:"— parameterised view filter, no backend call",
+      refresh:"On click",
+      output:"Sets org-unit scope for all downstream queries",
+      depends:"—",
+      writes:"Session view state (VIEW · CURRENT_AREA)"}},
+    {name:"Breadcrumb",inset:true,find:()=>qs('#breadcrumb'),r:{
+      source:"Client-side state only",
+      query:"—",
+      refresh:"On navigation",
+      output:"Current drill path (Dashboard › Area › Process)",
+      depends:"Navigation state machine",
+      writes:"— (client-side only)"}},
+    {name:"Assessment Launcher (topbar)",find:()=>qs('#newIcsBtn'),r:{
+      source:"Assessment Orchestration Service",
+      query:"POST /assessments { cycle: :cycle, scope: 'all-in-scope' }",
+      refresh:"On demand (user action)",
+      output:"New RCSA run seeded across in-scope processes",
+      depends:"ICS Agent (LLM) orchestration · RISK_REGISTER snapshot",
+      writes:"RCSA_DRAFTS · ASSESSMENT_RUNS · agent task queue"}},
+    {name:"ICS Agent (LLM)",inset:true,find:()=>qs('.agent-header'),r:{
+      source:"RAG over GRC knowledge base + live context injection",
+      query:"retrieve(top_k) ⊕ context(view, process_id) → LLM prompt",
+      refresh:"Streaming, per conversation turn",
+      output:"Narrative answers, suggested risks/controls, draft reports",
+      depends:"Vector store (policies, prior RCSAs) · GRC Core live reads",
+      writes:"Chat transcript · proposed risks to RISK_REGISTER on confirm"}},
+    {name:"Portfolio KPIs",find:()=>qs('#main-area .metrics-grid'),r:{
+      source:"GRC Core API · RCSA_PROCESSES ⊕ RISK_REGISTER ⊕ CONTROLS",
+      query:"SELECT COUNT(*), agg(residual), agg(control_gaps) FROM risk_register r JOIN rcsa_processes p ON r.process_id=p.id WHERE cycle=:cycle",
+      refresh:"On navigation / 15-min polling",
+      output:"Open risks, high/critical count, control gaps, overdue RCSAs, 1LoD pending",
+      depends:"Control-effectiveness scoring (C-engine) · ASSESSMENT_SCHEDULE",
+      writes:"— (read-only aggregation)"}},
+    {name:"Area Overview Cards",find:()=>qs('#main-area .areas-grid'),r:{
+      source:"GRC Core API · RCSA_PROCESSES grouped by org_unit",
+      query:"SELECT org_unit, agg(risk), agg(control_eff), min(next_due) FROM rcsa_processes GROUP BY org_unit",
+      refresh:"On navigation / 15-min polling",
+      output:"Per-area residual rating, control-effectiveness %, next-RCSA countdown",
+      depends:"Risk aggregation service · ASSESSMENT_SCHEDULE",
+      writes:"— (drill-down navigation only)"}},
+    {name:"Risk Heatmap",find:()=>{const g=qs('#main-area .heatmap-grid');return g?g.closest('.card'):null;},r:{
+      source:"GRC Core API · RISK_REGISTER (L×I matrix)",
+      query:"SELECT risk_id, risk_l, risk_i, inherent_l, inherent_i FROM risk_register WHERE process_id IN (:scope) AND cycle=:cycle",
+      refresh:"On navigation / heatmap mode toggle",
+      output:"Likelihood × Impact placement, new-risk flags",
+      depends:"Rule-based risk-scoring engine",
+      writes:"— (read-only)"}},
+    {name:"Heatmap Mode Toggle",find:()=>qs('#main-area .heat-mode-toggle'),r:{
+      source:"Client-side view parameter → re-projects RISK_REGISTER",
+      query:"switch projection: (inherent_l, inherent_i) ↔ (risk_l, risk_i)",
+      refresh:"On toggle",
+      output:"Re-renders heatmap using inherent or residual coordinates",
+      depends:"RISK_REGISTER risk_L / risk_I / inherent_L / inherent_I fields",
+      writes:"— (read-only)"}},
+    {name:"Control Effectiveness Donut",find:()=>{const d=qs('#main-area .donut-wrap');return d?d.closest('.card'):null;},r:{
+      source:"GRC Core API · CONTROLS",
+      query:"SELECT effectiveness, COUNT(*) FROM controls WHERE process_id IN (:scope) GROUP BY effectiveness",
+      refresh:"On navigation / after control-test sign-off",
+      output:"Effective / partial / ineffective / not-assessed distribution",
+      depends:"Control testing workflow (last_test outcomes)",
+      writes:"— (read-only)"}},
+    {name:"RCSA Timeline",find:()=>{const t=qs('#main-area .timeline-bar-track');return t?t.closest('.card'):null;},r:{
+      source:"GRC Core API · ASSESSMENT_SCHEDULE",
+      query:"SELECT process_id, next_due FROM assessment_schedule WHERE next_due IS NOT NULL ORDER BY next_due ASC LIMIT 8",
+      refresh:"Nightly batch / on navigation",
+      output:"Days-to-due or days-overdue, status colour",
+      depends:"RCSA status rule (next_due vs. reporting_date)",
+      writes:"— (read-only)"}},
+    {name:"Risk Register Table",inset:true,find:()=>{const t=qs('#main-area .risk-table');return t?t.closest('.card'):null;},r:{
+      source:"GRC Core API · RISK_REGISTER",
+      query:"SELECT * FROM risk_register WHERE process_id=:pid AND cycle=:cycle ORDER BY residual_rating DESC",
+      refresh:"On navigation / 15-min polling",
+      output:"Inherent & residual rating, trend direction, owner",
+      depends:"Control-effectiveness score (C-engine) · trend analytics",
+      writes:"RCSA draft if “Start Assessment” triggered"}},
+    {name:"Assessment Launcher",find:()=>{return qsa('#main-area button').filter(b=>/Start ICS Assessment/i.test(b.textContent))[0]||null;},r:{
+      source:"Assessment Orchestration Service",
+      query:"POST /assessments { process_id: :pid, cycle: :cycle }",
+      refresh:"On demand (user action)",
+      output:"New RCSA draft, agent task queue seeded",
+      depends:"ICS Agent (LLM) orchestration · RISK_REGISTER snapshot",
+      writes:"RCSA_DRAFTS · ASSESSMENT_RUNS · agent task queue"}}
+  ];
+
+  /* ---- persistent DOM: rail, backdrop, legend, modal ---- */
+  const backdrop=document.createElement('div');
+  backdrop.className='tech-backdrop';backdrop.id='techBackdrop';
+  const rail=document.createElement('aside');
+  rail.className='tech-rail';rail.id='techRail';
+  rail.setAttribute('role','dialog');
+  rail.setAttribute('aria-label','Technical architecture panel');
+  rail.setAttribute('aria-hidden','true');
+  rail.innerHTML=
+    '<div class="tech-rail-hdr">'+
+      '<button class="tech-rail-close" id="techRailClose" type="button" aria-label="Close technical panel">✕</button>'+
+      '<h3><span class="tg-mark">⌗</span>Technical Architecture · ICS Cockpit</h3>'+
+      '<div class="tech-rail-legend"><span class="lg-badge">1</span> Click a badge on the dashboard to jump to its entry</div>'+
+    '</div>'+
+    '<div class="tech-rail-body" id="techRailBody"></div>';
+  document.body.appendChild(backdrop);
+  document.body.appendChild(rail);
+  const railBody=qs('#techRailBody',rail);
+
+  const legend=document.createElement('div');
+  legend.id='aiLegend';
+  legend.innerHTML=
+    '<span class="ai-leg-item"><span class="ai-leg-dot" style="background:#A100FF;">✦</span>AI-Powered</span>'+
+    '<span class="ai-leg-item"><span class="ai-leg-dot" style="background:#08B9B2;">⟳</span>Data Pipeline</span>'+
+    '<span class="ai-leg-item"><span class="ai-leg-dot" style="background:#F59E0B;">⚙</span>Rule-Based</span>'+
+    '<span class="ai-leg-item"><span class="ai-leg-dot" style="background:#22C55E;">✎</span>Human Input Required</span>'+
+    '<button class="ai-leg-info" id="aiInfoLink" type="button">What is this? <i class="ti ti-info-circle"></i></button>';
+  const navBar=qs('.nav-bar');
+  navBar.insertAdjacentElement('afterend',legend);
+
+  const modalBack=document.createElement('div');
+  modalBack.className='ai-modal-back';modalBack.id='aiModalBack';
+  modalBack.innerHTML=
+    '<div class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">'+
+      '<button class="ai-modal-close" id="aiModalClose" type="button" aria-label="Close">✕</button>'+
+      '<h4 id="aiModalTitle">The AI Layer, explained</h4>'+
+      '<p class="sub">Every element on the cockpit is served by one of four mechanisms. Toggle the AI Layer to see which is which.</p>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#A100FF;">✦</span><div class="ai-cat-b"><div class="ai-cat-t">AI-Powered</div><div class="ai-cat-d">Outputs generated by the ICS Agent (LLM) — RAG over the GRC knowledge base plus live context. Covers assessment orchestration, narrative insight and suggested risks/controls.</div></div></div>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#08B9B2;">⟳</span><div class="ai-cat-b"><div class="ai-cat-t">Data Pipeline</div><div class="ai-cat-d">Deterministic reads and aggregations from the GRC Core API (RCSA_PROCESSES, RISK_REGISTER, CONTROLS). Refreshed on navigation and 15-minute polling.</div></div></div>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#F59E0B;">⚙</span><div class="ai-cat-b"><div class="ai-cat-t">Rule-Based</div><div class="ai-cat-d">Scores and statuses from the rule engine — inherent/residual rating (L×I), control effectiveness and RCSA due-date logic. No model inference.</div></div></div>'+
+      '<div class="ai-cat"><span class="ai-cat-dot" style="background:#22C55E;">✎</span><div class="ai-cat-b"><div class="ai-cat-t">Human Input Required</div><div class="ai-cat-d">Items awaiting 1LoD action — process documentation, risk-owner confirmation and reminder workflows routed to accountable owners.</div></div></div>'+
+    '</div>';
+  document.body.appendChild(modalBack);
+
+  /* ---- rail open/close ---- */
+  function openRail(){railOpen=true;rail.classList.add('open');backdrop.classList.add('open');rail.setAttribute('aria-hidden','false');}
+  function closeRail(){railOpen=false;rail.classList.remove('open');backdrop.classList.remove('open');rail.setAttribute('aria-hidden','true');}
+  function scrollToEntry(n){
+    const e=qs('.tech-entry[data-idx="'+n+'"]',railBody);
+    if(!e)return;
+    e.scrollIntoView({behavior:'smooth',block:'nearest'});
+    e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');
+  }
+  qs('#techRailClose',rail).addEventListener('click',closeRail);
+  backdrop.addEventListener('click',closeRail);
+
+  /* ---- clear all overlay artifacts ---- */
+  function clearOverlay(){
+    qsa('.tech-badge').forEach(b=>b.remove());
+    qsa('.tech-anno').forEach(e=>e.classList.remove('tech-anno'));
+    qsa('.ai-ai,.ai-data,.ai-rule,.ai-human,.ai-badge-host').forEach(e=>e.classList.remove('ai-ai','ai-data','ai-rule','ai-human','ai-badge-host'));
+    qsa('.ai-cell').forEach(e=>e.classList.remove('ai-cell'));
+  }
+
+  /* ---- apply Technical View ---- */
+  function railRow(k,v){return '<div class="tech-row"><span class="tech-row-k">'+k+'</span><span class="tech-row-v">'+esc(v)+'</span></div>';}
+  function applyTech(){
+    railBody.innerHTML='';
+    let n=0;
+    CAT.forEach(item=>{
+      const el=item.find();
+      if(!el)return;
+      n++;
+      const num=n;
+      el.classList.add('tech-anno');
+      const badge=document.createElement('span');
+      badge.className='tech-badge'+(item.inset?' tb-inset':'');
+      badge.setAttribute('role','button');
+      badge.setAttribute('tabindex','0');
+      badge.setAttribute('aria-label','Architecture annotation '+num+': '+item.name);
+      badge.dataset.idx=num;
+      badge.textContent=num;
+      const jump=ev=>{ev.stopPropagation();ev.preventDefault();openRail();scrollToEntry(num);};
+      badge.addEventListener('click',jump);
+      badge.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){jump(ev);}});
+      el.appendChild(badge);
+      const entry=document.createElement('div');
+      entry.className='tech-entry';
+      entry.dataset.idx=num;
+      entry.style.animationDelay=(num*0.04)+'s';
+      entry.innerHTML='<div class="tech-entry-hd"><span class="tech-entry-num">'+num+'</span><span class="tech-entry-name">'+esc(item.name)+'</span></div>'+
+        railRow('Data source',item.r.source)+railRow('Query',item.r.query)+railRow('Refresh',item.r.refresh)+
+        railRow('Output',item.r.output)+railRow('Depends on',item.r.depends)+railRow('Writes to',item.r.writes);
+      railBody.appendChild(entry);
+    });
+    if(!n){railBody.innerHTML='<div style="color:#7C8BA3;font-size:12px;padding:20px 4px;">No annotated components in this view.</div>';}
+    if(railOpen)openRail();else closeRail();
+  }
+
+  /* ---- apply AI Layer ---- */
+  function mark(el,cls,host){if(!el)return;el.classList.add(cls);if(host)el.classList.add('ai-badge-host');}
+  function applyAI(){
+    // AI-powered
+    mark(qs('.agent-header'),'ai-ai',true);
+    qsa('#chatMsgs .msg').forEach(m=>mark(m,'ai-ai',true));
+    const trend=qs('#trendGrad');
+    if(trend){const c=trend.closest('.card');if(c)mark(c,'ai-ai',true);}
+    mark(qs('#newIcsBtn'),'ai-ai',true);
+    qsa('#main-area button').forEach(b=>{if(/Start ICS Assessment/i.test(b.textContent))mark(b,'ai-ai',true);});
+    qsa('#main-area .area-card span').forEach(s=>{if(/ctrl gap/i.test(s.textContent))mark(s,'ai-ai',true);});
+    qsa('.heat-chip.new-risk').forEach(h=>mark(h,'ai-ai',true));
+    // Data pipeline
+    qsa('#main-area .metric').forEach(m=>mark(m,'ai-data',true));
+    qsa('#main-area .area-card').forEach(a=>mark(a,'ai-data',true));
+    qsa('#main-area .timeline-row').forEach(t=>mark(t,'ai-data',true));
+    const donut=qs('#main-area .donut-wrap');
+    if(donut){const c=donut.closest('.card');if(c)mark(c,'ai-data',true);}
+    qsa('#main-area .risk-table tbody tr, #main-area .proc-table tbody tr').forEach(tr=>{
+      tr.classList.add('ai-data');
+      const td=tr.querySelector('td');if(td)td.classList.add('ai-cell');
+    });
+    // Rule-based
+    qsa('.anno-rating,.anno-status,.anno-eff').forEach(e=>e.classList.add('ai-rule'));
+    // Human input required
+    qsa('#main-area .pending-item').forEach(p=>mark(p,'ai-human',true));
+    qsa('#main-area .card-action').forEach(a=>{if(/reminder/i.test(a.textContent))mark(a,'ai-human',true);});
+  }
+
+  /* ---- orchestrate after every render ---- */
+  function afterOverlay(){
+    clearOverlay();
+    if(state.tech)applyTech();
+    else if(state.ai)applyAI();
+  }
+
+  /* ---- wrap renderMain (late-bound global) ---- */
+  const _renderMain=window.renderMain;
+  window.renderMain=function(){_renderMain.apply(this,arguments);afterOverlay();};
+
+  /* ---- chrome / toggle wiring ---- */
+  const techBtn=qs('#techToggle'),aiBtn=qs('#aiToggle');
+  function syncChrome(){
+    document.body.classList.toggle('tech-view',state.tech);
+    document.body.classList.toggle('ai-layer',state.ai);
+    techBtn.setAttribute('aria-pressed',state.tech?'true':'false');
+    aiBtn.setAttribute('aria-pressed',state.ai?'true':'false');
+    try{store.setItem('ics_tech',state.tech?'1':'0');store.setItem('ics_ai',state.ai?'1':'0');}catch(e){}
+  }
+  function setTech(on){
+    state.tech=on;if(on){state.ai=false;railOpen=true;}else{closeRail();}
+    syncChrome();afterOverlay();
+  }
+  function setAI(on){
+    state.ai=on;if(on){state.tech=false;closeRail();}
+    syncChrome();afterOverlay();
+  }
+  techBtn.addEventListener('click',()=>setTech(!state.tech));
+  aiBtn.addEventListener('click',()=>setAI(!state.ai));
+
+  /* ---- AI modal (focus trap) ---- */
+  const infoLink=qs('#aiInfoLink'),modalClose=qs('#aiModalClose',modalBack);
+  let lastFocus=null;
+  function focusables(){return qsa('button, [href], [tabindex]:not([tabindex="-1"])',modalBack).filter(el=>el.offsetParent!==null);}
+  function openModal(){
+    lastFocus=document.activeElement;
+    modalBack.classList.add('open');
+    const f=focusables();if(f.length)f[0].focus();
+  }
+  function closeModal(){
+    modalBack.classList.remove('open');
+    if(lastFocus&&lastFocus.focus)lastFocus.focus();
+  }
+  infoLink.addEventListener('click',openModal);
+  modalClose.addEventListener('click',closeModal);
+  modalBack.addEventListener('click',ev=>{if(ev.target===modalBack)closeModal();});
+  modalBack.addEventListener('keydown',ev=>{
+    if(ev.key==='Escape'){ev.preventDefault();closeModal();return;}
+    if(ev.key==='Tab'){
+      const f=focusables();if(!f.length)return;
+      const first=f[0],last=f[f.length-1];
+      if(ev.shiftKey&&document.activeElement===first){ev.preventDefault();last.focus();}
+      else if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus();}
+    }
+  });
+
+  /* ---- global ESC: rail ---- */
+  document.addEventListener('keydown',ev=>{
+    if(ev.key==='Escape'){
+      if(modalBack.classList.contains('open'))return; // modal handles its own
+      if(railOpen)closeRail();
+    }
+  });
+
+  /* ---- restore persisted state on load ---- */
+  syncChrome();
+  afterOverlay();
+})();
 </script>
 </body>
 </html>
