@@ -1105,9 +1105,12 @@ renderMain();
   const qsa=(s,r)=>Array.prototype.slice.call((r||document).querySelectorAll(s));
   const store=window.sessionStorage;
 
-  /* ---- state ---- */
+  /* ---- state (URL params: ?ai=1 or ?tech=1 override sessionStorage for shareable deep-links) ---- */
+  const _urlP=new URLSearchParams(window.location.search);
   const state={tech:false,ai:false};
   try{state.tech=store.getItem('ics_tech')==='1';state.ai=store.getItem('ics_ai')==='1';}catch(e){}
+  if(_urlP.get('ai')==='1'){state.ai=true;state.tech=false;}
+  if(_urlP.get('tech')==='1'){state.tech=true;state.ai=false;}
   if(state.tech&&state.ai)state.ai=false; // enforce exclusivity on restore
   let railOpen=state.tech;
 
