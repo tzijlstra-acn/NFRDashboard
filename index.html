@@ -1131,9 +1131,9 @@ renderMain();
       source:"Assessment Orchestration Service (prototype routes to ICS Agent chat)",
       query:"POST /assessments { cycle: :cycle, scope: 'all-in-scope' }",
       refresh:"On demand (user action)",
-      output:"New RCSA run seeded across in-scope processes",
-      depends:"ICS Agent (LLM) orchestration · Assessment Workflow Engine · RISK_REGISTER snapshot",
-      writes:"ASSESSMENT_RUNS · RCSA_DRAFTS · notification service · agent task queue"}},
+      output:"New RCSA cycle seeded across in-scope processes",
+      depends:"Assessment Workflow Engine · RISK_REGISTER snapshot (ICS Agent provides supporting context; not load-bearing for cycle creation)",
+      writes:"ASSESSMENT_RUNS (seeds new cycle) · notifications (in-scope owners)"}},
     {name:"ICS Agent (LLM)",inset:true,find:()=>qs('.agent-header'),r:{
       source:"Prototype: canned getReply() map · Prod: RAG over GRC knowledge base + live context injection",
       query:"retrieve(top_k policies, prior RCSAs) ⊕ context(view, process_id, filters) → LLM prompt",
@@ -1149,8 +1149,8 @@ renderMain();
       depends:"Rule engine (residual scoring, gap logic, overdue logic)",
       writes:"— (read-only aggregation)"}},
     {name:"Area Overview Cards",find:()=>qs('#main-area .areas-grid'),r:{
-      source:"GRC Core API · RCSA_PROCESSES grouped by org_unit",
-      query:"SELECT org_unit, agg(risk), agg(control_eff), min(next_due) FROM rcsa_processes GROUP BY org_unit",
+      source:"GRC Core API · RCSA_PROCESSES",
+      query:"SELECT name, residual_risk, control_eff, next_rcsa FROM rcsa_processes WHERE org_unit=:area -- one representative process per area card (no GROUP BY aggregation in prototype)",
       refresh:"On navigation / 15-min polling",
       output:"Per-area residual rating, control-effectiveness %, next-RCSA countdown",
       depends:"Risk aggregation service · ASSESSMENT_SCHEDULE",
@@ -1185,18 +1185,18 @@ renderMain();
       writes:"— (read-only)"}},
     {name:"Risk Register Table",inset:true,find:()=>{const t=qs('#main-area .risk-table');return t?t.closest('.card'):null;},r:{
       source:"GRC Core API · RISK_REGISTER",
-      query:"SELECT risk_id, title, category, inherent_rating, residual_rating, trend, owner FROM risk_register WHERE process_id IN (:scope) AND cycle=:cycle ORDER BY residual_rating DESC",
+      query:"SELECT risk_id, title, category, inherent_rating, residual_rating, trend, owner FROM risk_register WHERE process_id IN (:scope) AND cycle=:cycle -- row order follows source PROCESSES array; no residual-rating sort in prototype",
       refresh:"On navigation / 15-min polling",
       output:"Inherent & residual rating, trend direction, owner",
-      depends:"Rule engine (residual scoring) · trend analytics (statistical direction; ML-forecast optional)",
+      depends:"Rule engine (residual scoring) · trend analytics (statistical direction; scipy.stats.linregress — no ML model)",
       writes:"— (read-only; row click drills to process)"}},
     {name:"Assessment Launcher",find:()=>{return qsa('#main-area button').filter(b=>/Start ICS Assessment/i.test(b.textContent))[0]||null;},r:{
       source:"Assessment Orchestration Service (prototype routes to ICS Agent chat)",
       query:"POST /assessments { process_id: :pid, cycle: :cycle }",
       refresh:"On demand (user action)",
-      output:"New RCSA draft, agent task queue seeded",
-      depends:"ICS Agent (LLM) orchestration · Assessment Workflow Engine · RISK_REGISTER snapshot",
-      writes:"ASSESSMENT_RUNS · RCSA_DRAFTS · notification service · agent task queue"}}
+      output:"New RCSA draft seeded for this process",
+      depends:"Assessment Workflow Engine · RISK_REGISTER snapshot (ICS Agent provides supporting context; not load-bearing for cycle creation)",
+      writes:"ASSESSMENT_RUNS (seeds new cycle) · notifications (process owner)"}}
   ];
 
   /* ---- persistent DOM: rail, backdrop, legend, modal ---- */
@@ -1308,8 +1308,12 @@ renderMain();
     qsa('#main-area button').forEach(b=>{if(/Start ICS Assessment/i.test(b.textContent))mark(b,'ai-ai',true);});
     // new-risk chips: in this scenario the agent/TPRM signal flagged R-104 → AI-Powered
     qsa('.heat-chip.new-risk').forEach(h=>mark(h,'ai-ai',true));
-    // Data pipeline
-    qsa('#main-area .metric').forEach(m=>mark(m,'ai-data',true));
+    // Data pipeline — control-gap count is pure arithmetic (ineffective + partial), not a pipeline output → Rule-Based
+    qsa('#main-area .metric').forEach(m=>{
+      const lbl=m.querySelector('.metric-label');
+      if(lbl&&/control gap/i.test(lbl.textContent))mark(m,'ai-rule',true);
+      else mark(m,'ai-data',true);
+    });
     qsa('#main-area .area-card').forEach(a=>mark(a,'ai-data',true));
     qsa('#main-area .timeline-row').forEach(t=>mark(t,'ai-data',true));
     const donut=qs('#main-area .donut-wrap');
